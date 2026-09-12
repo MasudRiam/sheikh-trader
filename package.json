@@ -8,10 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "node scripts/seed-products.mjs",
-    "migrate": "node db/migrate.js"
+    "migrate:up": "dotenv -e .env.local -- npx node-pg-migrate up",
+    "migrate:down": "dotenv -e .env.local -- npx node-pg-migrate down",
+    "migrate:create": "npx node-pg-migrate create"
   },
   "dependencies": {
     "next": "16.2.9",
+    "node-pg-migrate": "^9.0.0",
     "pg": "^8.23.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -22,6 +25,8 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
