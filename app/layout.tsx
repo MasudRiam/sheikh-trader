@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sheikh Trader",
   description: "Sheikh Trader dashboard",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
