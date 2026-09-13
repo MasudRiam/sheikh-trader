@@ -58,11 +58,11 @@ export function DashboardLive() {
                     <TableCell className="text-right font-medium tabular-nums">{fmt(d.totalSell)}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>Khoroch</TableCell>
+                    <TableCell>Expense</TableCell>
                     <TableCell className="text-right tabular-nums">{fmt(d.khoroch)}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="font-medium">Net (Mot - Khoroch)</TableCell>
+                    <TableCell className="font-medium">Net (Mot - Expense)</TableCell>
                     <TableCell className="text-right font-medium tabular-nums">
                       {fmt(d.totalSell - d.khoroch)}
                     </TableCell>

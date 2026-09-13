@@ -39,7 +39,7 @@ export default function AccountsPage() {
               <TableRow><TableCell className="font-medium">Total</TableCell>
                 <TableCell className="text-right font-medium tabular-nums">৳{total.toLocaleString()}</TableCell></TableRow>
             </TableBody></Table>
-            <p className="text-muted-foreground mt-3 text-sm">Balance auto-updates on bikri (paid+), due collect (+), khoroch (-).</p>
+            <p className="text-muted-foreground mt-3 text-sm">Balance auto-updates on bikri (paid+), due collect (+), expense (-).</p>
           </CardContent>
         </Card>
         <Card>

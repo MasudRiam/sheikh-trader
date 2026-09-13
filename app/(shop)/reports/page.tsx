@@ -58,8 +58,8 @@ export default function ReportsPage() {
     { label: "Cash", value: totals?.cashReceived ?? 0 },
     { label: "Baki", value: totals?.dueAmount ?? 0 },
     { label: "Labh (Profit)", value: totals?.profit ?? 0 },
-    { label: "Khoroch", value: totals?.khoroch ?? 0 },
-    { label: "Net (Mot-Khoroch)", value: totals?.net ?? 0 },
+    { label: "Expense", value: totals?.khoroch ?? 0 },
+    { label: "Net (Mot-Expense)", value: totals?.net ?? 0 },
   ];
 
   return (
@@ -106,7 +106,7 @@ export default function ReportsPage() {
               </div>
             ) : isYear ? (
               <Table>
-                <TableHeader><TableRow><TableHead>Month</TableHead><TableHead className="text-right">Mot</TableHead><TableHead className="text-right">Cash</TableHead><TableHead className="text-right">Baki</TableHead><TableHead className="text-right">Labh</TableHead><TableHead className="text-right">Khoroch</TableHead><TableHead className="text-right">Net</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Month</TableHead><TableHead className="text-right">Mot</TableHead><TableHead className="text-right">Cash</TableHead><TableHead className="text-right">Baki</TableHead><TableHead className="text-right">Labh</TableHead><TableHead className="text-right">Expense</TableHead><TableHead className="text-right">Net</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {(yearQuery.data?.rows ?? []).map((r: { month: number; totalSell: number; cashReceived: number; dueAmount: number; profit: number; khoroch: number; net: number }) => (
                     <TableRow key={r.month}>
@@ -123,7 +123,7 @@ export default function ReportsPage() {
               </Table>
             ) : (
               <Table>
-                <TableHeader><TableRow><TableHead>Date</TableHead><TableHead className="text-right">Mot</TableHead><TableHead className="text-right">Cash</TableHead><TableHead className="text-right">Baki</TableHead><TableHead className="text-right">Labh</TableHead><TableHead className="text-right">Khoroch</TableHead><TableHead className="text-right">Net</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Date</TableHead><TableHead className="text-right">Mot</TableHead><TableHead className="text-right">Cash</TableHead><TableHead className="text-right">Baki</TableHead><TableHead className="text-right">Labh</TableHead><TableHead className="text-right">Expense</TableHead><TableHead className="text-right">Net</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {(rangeQuery.data?.rows ?? []).map((r: { date: string; totalSell: number; cashReceived: number; dueAmount: number; profit: number; khoroch: number; net: number }) => (
                     <TableRow key={r.date}>

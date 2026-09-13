@@ -39,7 +39,7 @@ const data = {
     { title: "Bikri (Sales)", url: "/sales", icon: <ShoppingCartIcon /> },
     { title: "Products / Stock", url: "/products", icon: <PackageIcon /> },
     { title: "Baki / Due", url: "/due", icon: <BookUserIcon /> },
-    { title: "Khoroch", url: "/expenses", icon: <WalletIcon /> },
+    { title: "Expenses", url: "/expenses", icon: <WalletIcon /> },
     { title: "Accounts", url: "/accounts", icon: <LandmarkIcon /> },
     { title: "Reports", url: "/reports", icon: <ChartColumnIcon /> },
   ],

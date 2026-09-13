@@ -99,7 +99,7 @@ export function SectionCards({ data }: { data?: Partial<ShopSummary> }) {
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Labh - Khoroch = Net</CardDescription>
+          <CardDescription>Labh - Expense = Net</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {fmt(net)}
           </CardTitle>
@@ -112,7 +112,7 @@ export function SectionCards({ data }: { data?: Partial<ShopSummary> }) {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Profit {fmt(s.profit)} - Khoroch {fmt(s.khoroch)}
+            Profit {fmt(s.profit)} - Expense {fmt(s.khoroch)}
           </div>
           <div className="text-muted-foreground">Daily closing hisab</div>
         </CardFooter>

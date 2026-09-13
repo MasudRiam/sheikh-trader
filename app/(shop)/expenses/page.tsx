@@ -63,7 +63,7 @@ export default function ExpensesPage() {
       return r.json();
     },
     onSuccess: () => {
-      toast.success("Khoroch saved");
+      toast.success("Expense saved");
       setForm({ category: "general", amount: "", account_id: "", note: "" });
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["expenses-table"] }); qc.invalidateQueries({ queryKey: ["daily"] });
@@ -76,12 +76,12 @@ export default function ExpensesPage() {
       <div className="px-4 lg:px-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Khoroch</CardTitle>
+            <CardTitle>Recent Expenses</CardTitle>
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger render={<Button><PlusIcon />Add Khoroch</Button>} />
+              <DialogTrigger render={<Button><PlusIcon />Add Expense</Button>} />
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>New Khoroch</DialogTitle>
+                  <DialogTitle>New Expense</DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-3">
@@ -90,11 +90,11 @@ export default function ExpensesPage() {
                     </div>
                     <div><Label className="mb-[2px]">Amount</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
                   </div>
-                  <div><Label className="mb-[2px]">Account (kotha theke)</Label>
+                  <div><Label className="mb-[2px]">Account</Label>
                     <AppSelect value={form.account_id} onChange={(v) => setForm({ ...form, account_id: v })} options={accountOptions} placeholder="Select..." isClearable />
                   </div>
                   <div><Label className="mb-[2px]" htmlFor="expense-note">Note</Label><textarea id="expense-note" rows={2} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="Details likhun..." className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30" /></div>
-                  <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending && <Loader2Icon className="animate-spin" />}Save khoroch</Button>
+                  <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending && <Loader2Icon className="animate-spin" />}Save expense</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -107,7 +107,7 @@ export default function ExpensesPage() {
                 ))}
               </div>
             ) : expenses.length === 0 ? (
-              <p className="text-muted-foreground py-6 text-center text-sm">No khoroch yet.</p>
+              <p className="text-muted-foreground py-6 text-center text-sm">No expenses yet.</p>
             ) : (
               <>
               <TooltipProvider>

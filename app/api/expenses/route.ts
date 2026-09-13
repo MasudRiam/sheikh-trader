@@ -4,7 +4,7 @@ import { getExpenses, getExpensesPaginated, createExpense } from "@/app/lib/quer
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    // Paginated object when page/perPage given (Recent Khoroch table); full array otherwise
+    // Paginated object when page/perPage given (Recent Expenses table); full array otherwise
     if (searchParams.has("page") || searchParams.has("perPage")) {
       const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
       const perPage = Math.min(Math.max(parseInt(searchParams.get("perPage") ?? "10", 10) || 10, 1), 100);
