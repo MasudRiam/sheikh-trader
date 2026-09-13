@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSelect } from "@/components/ui/app-select";
+import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProductsPage() {
@@ -59,22 +60,22 @@ export default function ProductsPage() {
         <Card>
           <CardHeader><CardTitle>New AC Part</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Compressor, Copper pipe..." /></div>
+            <div><Label className="mb-[2px]">Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Compressor, Copper pipe..." /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Category</Label>
+              <div><Label className="mb-[2px]">Category</Label>
                 <AppSelect value={form.category} onChange={(v) => setForm({ ...form, category: v || "AC_PARTS" })} options={categoryOptions} isSearchable={false} placeholder="Category" />
               </div>
-              <div><Label>Opening stock</Label><Input type="number" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: e.target.value })} /></div>
-              <div><Label>Buy price</Label><Input type="number" value={form.buy_price} onChange={(e) => setForm({ ...form, buy_price: e.target.value })} /></div>
-              <div><Label>Sell price</Label><Input type="number" value={form.sell_price} onChange={(e) => setForm({ ...form, sell_price: e.target.value })} /></div>
+              <div><Label className="mb-[2px]">Opening stock</Label><Input type="number" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: e.target.value })} /></div>
+              <div><Label className="mb-[2px]">Buy price</Label><Input type="number" value={form.buy_price} onChange={(e) => setForm({ ...form, buy_price: e.target.value })} /></div>
+              <div><Label className="mb-[2px]">Sell price</Label><Input type="number" value={form.sell_price} onChange={(e) => setForm({ ...form, sell_price: e.target.value })} /></div>
             </div>
-            <Button onClick={() => addProduct.mutate()} disabled={addProduct.isPending}>Add product</Button>
+            <Button onClick={() => addProduct.mutate()} disabled={addProduct.isPending}>{addProduct.isPending && <Loader2Icon className="animate-spin" />}Add product</Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle>Stock In (Kena / Purchase)</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div><Label>Product</Label>
+            <div><Label className="mb-[2px]">Product</Label>
               <AppSelect
                 value={stockIn.product_id}
                 onChange={(v) => setStockIn({ ...stockIn, product_id: v })}
@@ -84,10 +85,10 @@ export default function ProductsPage() {
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Qty</Label><Input type="number" value={stockIn.qty} onChange={(e) => setStockIn({ ...stockIn, qty: e.target.value })} /></div>
-              <div><Label>Buy price</Label><Input type="number" value={stockIn.buy_price} onChange={(e) => setStockIn({ ...stockIn, buy_price: e.target.value })} /></div>
+              <div><Label className="mb-[2px]">Qty</Label><Input type="number" value={stockIn.qty} onChange={(e) => setStockIn({ ...stockIn, qty: e.target.value })} /></div>
+              <div><Label className="mb-[2px]">Buy price</Label><Input type="number" value={stockIn.buy_price} onChange={(e) => setStockIn({ ...stockIn, buy_price: e.target.value })} /></div>
             </div>
-            <Button onClick={() => addStock.mutate()} disabled={addStock.isPending}>Add stock</Button>
+            <Button onClick={() => addStock.mutate()} disabled={addStock.isPending}>{addStock.isPending && <Loader2Icon className="animate-spin" />}Add stock</Button>
           </CardContent>
         </Card>
       </div>
