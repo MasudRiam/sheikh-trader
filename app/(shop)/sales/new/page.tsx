@@ -88,7 +88,7 @@ export default function NewSalePage() {
                 </div>
               );
             })}
-            <div className="text-right font-medium tabular-nums">Mot: ৳{total.toLocaleString()}</div>
+            <div className="text-right font-medium tabular-nums">Total: ৳{total.toLocaleString()}</div>
           </CardContent>
         </Card>
         <Card>
