@@ -25,7 +25,6 @@ import {
   LandmarkIcon,
   ChartColumnIcon,
   Settings2Icon,
-  CircleHelpIcon,
   StoreIcon,
 } from "lucide-react"
 
@@ -46,7 +45,6 @@ const data = {
   ],
   navSecondary: [
     { title: "Settings", url: "#", icon: <Settings2Icon /> },
-    { title: "Get Help", url: "#", icon: <CircleHelpIcon /> },
   ],
 }
 
