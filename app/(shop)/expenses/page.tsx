@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AppSelect } from "@/components/ui/app-select";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ const PER_PAGE_OPTIONS = [
 
 export default function ExpensesPage() {
   const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("10");
   const { data, isLoading } = useQuery<ExpensesResponse>({
@@ -60,31 +62,43 @@ export default function ExpensesPage() {
       if (!r.ok) throw new Error((await r.json()).error || "Failed");
       return r.json();
     },
-    onSuccess: () => { toast.success("Khoroch saved"); setForm({ category: "general", amount: "", account_id: "", note: "" }); qc.invalidateQueries({ queryKey: ["expenses-table"] }); qc.invalidateQueries({ queryKey: ["daily"] }); },
+    onSuccess: () => {
+      toast.success("Khoroch saved");
+      setForm({ category: "general", amount: "", account_id: "", note: "" });
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["expenses-table"] }); qc.invalidateQueries({ queryKey: ["daily"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @5xl/main:grid-cols-2">
+      <div className="px-4 lg:px-6">
         <Card>
-          <CardHeader><CardTitle>New Khoroch</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label className="mb-[2px]">Category</Label>
-                <AppSelect value={form.category} onChange={(v) => setForm({ ...form, category: v || "general" })} options={categoryOptions} isSearchable={false} placeholder="Category" />
-              </div>
-              <div><Label className="mb-[2px]">Amount</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
-            </div>
-            <div><Label className="mb-[2px]">Account (kotha theke)</Label>
-              <AppSelect value={form.account_id} onChange={(v) => setForm({ ...form, account_id: v })} options={accountOptions} placeholder="Select..." isClearable />
-            </div>
-            <div><Label className="mb-[2px]" htmlFor="expense-note">Note</Label><textarea id="expense-note" rows={2} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="Details likhun..." className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30" /></div>
-            <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending && <Loader2Icon className="animate-spin" />}Save khoroch</Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Recent Khoroch</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Recent Khoroch</CardTitle>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger render={<Button><PlusIcon />Add Khoroch</Button>} />
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>New Khoroch</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="mb-[2px]">Category</Label>
+                      <AppSelect value={form.category} onChange={(v) => setForm({ ...form, category: v || "general" })} options={categoryOptions} isSearchable={false} placeholder="Category" />
+                    </div>
+                    <div><Label className="mb-[2px]">Amount</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
+                  </div>
+                  <div><Label className="mb-[2px]">Account (kotha theke)</Label>
+                    <AppSelect value={form.account_id} onChange={(v) => setForm({ ...form, account_id: v })} options={accountOptions} placeholder="Select..." isClearable />
+                  </div>
+                  <div><Label className="mb-[2px]" htmlFor="expense-note">Note</Label><textarea id="expense-note" rows={2} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="Details likhun..." className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30" /></div>
+                  <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending && <Loader2Icon className="animate-spin" />}Save khoroch</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex flex-col gap-2">
