@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppSelect } from "@/components/ui/app-select";
+import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 export default function NewSalePage() {
@@ -94,17 +95,18 @@ export default function NewSalePage() {
           <CardHeader><CardTitle>Payment (Nagad / Baki)</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Customer name (baki hole)</Label><Input value={customer_name} onChange={(e) => setCustomerName(e.target.value)} placeholder="Mistri / customer" /></div>
-              <div><Label>Phone</Label><Input value={customer_phone} onChange={(e) => setCustomerPhone(e.target.value)} /></div>
+              <div><Label className="mb-[2px]">Customer name (baki hole)</Label><Input value={customer_name} onChange={(e) => setCustomerName(e.target.value)} placeholder="Mistri / customer" /></div>
+              <div><Label className="mb-[2px]">Phone</Label><Input value={customer_phone} onChange={(e) => setCustomerPhone(e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Paid amount</Label><Input type="number" value={paid} onChange={(e) => setPaid(e.target.value)} /></div>
-              <div><Label>Account</Label>
+              <div><Label className="mb-[2px]">Paid amount</Label><Input type="number" value={paid} onChange={(e) => setPaid(e.target.value)} /></div>
+              <div><Label className="mb-[2px]">Account</Label>
                 <AppSelect value={account_id} onChange={setAccountId} options={accountOptions} placeholder="Select account..." isClearable />
               </div>
             </div>
             <div className="text-sm">Due (Baki): <span className="font-medium tabular-nums">৳{due.toLocaleString()}</span></div>
             <Button onClick={() => submit.mutate()} disabled={submit.isPending || lines.length === 0}>
+              {submit.isPending && <Loader2Icon className="animate-spin" />}
               Save Bikri {due > 0 ? ` (Baki ৳${due.toLocaleString()})` : "(Full cash)"}
             </Button>
             {due > 0 && !customer_name && <p className="text-xs text-amber-600">Baki bikri te customer name dile hisab clear thakbe.</p>}
