@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AppSelect } from "@/components/ui/app-select";
 import { toast } from "sonner";
-
-const inputCls = "flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm";
 
 export default function ExpensesPage() {
   const qc = useQueryClient();
@@ -18,6 +17,16 @@ export default function ExpensesPage() {
   const expenses: { id: number; expense_date: string; category: string; amount: string }[] = Array.isArray(data) ? data : [];
   const accountList: { id: number; name: string }[] = Array.isArray(accounts.data) ? accounts.data : [];
   const [form, setForm] = useState({ category: "general", amount: "", account_id: "", note: "" });
+
+  const categoryOptions = [
+    { value: "general", label: "general" },
+    { value: "rent", label: "rent" },
+    { value: "staff", label: "staff" },
+    { value: "transport", label: "transport" },
+    { value: "food", label: "food" },
+    { value: "other", label: "other" },
+  ];
+  const accountOptions = accountList.map((a) => ({ value: String(a.id), label: a.name }));
 
   const save = useMutation({
     mutationFn: async () => {
@@ -40,17 +49,12 @@ export default function ExpensesPage() {
           <CardContent className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Category</Label>
-                <select className={inputCls} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  <option value="general">general</option><option value="rent">rent</option><option value="staff">staff</option><option value="transport">transport</option><option value="food">food</option><option value="other">other</option>
-                </select>
+                <AppSelect value={form.category} onChange={(v) => setForm({ ...form, category: v || "general" })} options={categoryOptions} isSearchable={false} placeholder="Category" />
               </div>
               <div><Label>Amount</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
             </div>
             <div><Label>Account (kotha theke)</Label>
-              <select className={inputCls} value={form.account_id} onChange={(e) => setForm({ ...form, account_id: e.target.value })}>
-                <option value="">Select...</option>
-                {(accountList).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+              <AppSelect value={form.account_id} onChange={(v) => setForm({ ...form, account_id: v })} options={accountOptions} placeholder="Select..." isClearable />
             </div>
             <div><Label>Note</Label><Input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></div>
             <Button onClick={() => save.mutate()} disabled={save.isPending}>Save khoroch</Button>

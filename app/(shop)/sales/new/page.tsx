@@ -6,23 +6,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppSelect } from "@/components/ui/app-select";
 import { toast } from "sonner";
-
-interface Product { id: number; name: string; current_stock: number; sell_price: string; }
-interface Account { id: number; name: string; }
-
-const inputCls = "flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm";
 
 export default function NewSalePage() {
   const qc = useQueryClient();
-  const products = useQuery<Product[]>({ queryKey: ["products"], queryFn: async () => fetch("/api/products").then((r) => r.json()) });
-  const accounts = useQuery<Account[]>({ queryKey: ["accounts"], queryFn: async () => fetch("/api/accounts").then((r) => r.json()) });
+  const products = useQuery<{ id: number; name: string; current_stock: number; sell_price: string }[]>({ queryKey: ["products"], queryFn: async () => fetch("/api/products").then((r) => r.json()) });
+  const accounts = useQuery<{ id: number; name: string }[]>({ queryKey: ["accounts"], queryFn: async () => fetch("/api/accounts").then((r) => r.json()) });
   const [lines, setLines] = useState<{ product_id: number; qty: number; sell_price: number }[]>([]);
   const [pick, setPick] = useState({ product_id: "", qty: "1" });
   const [customer_name, setCustomerName] = useState("");
   const [customer_phone, setCustomerPhone] = useState("");
   const [paid, setPaid] = useState("");
   const [account_id, setAccountId] = useState("");
+
+  const productOptions = (products.data ?? []).map((p) => ({
+    value: String(p.id),
+    label: `${p.name} | st ${p.current_stock} | ৳${p.sell_price}`,
+  }));
+  const accountOptions = (accounts.data ?? []).map((a) => ({
+    value: String(a.id),
+    label: a.name,
+  }));
 
   const total = lines.reduce((a, l) => a + l.qty * l.sell_price, 0);
   const paidNum = Number(paid || 0);
@@ -66,10 +71,7 @@ export default function NewSalePage() {
           <CardHeader><CardTitle>New Bikri (POS)</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="grid grid-cols-[1fr_80px_auto] gap-2">
-              <select className={inputCls} value={pick.product_id} onChange={(e) => setPick({ ...pick, product_id: e.target.value })}>
-                <option value="">Part select...</option>
-                {(products.data ?? []).map((p) => <option key={p.id} value={p.id}>{p.name} | st {p.current_stock} | ৳{p.sell_price}</option>)}
-              </select>
+              <AppSelect value={pick.product_id} onChange={(v) => setPick({ ...pick, product_id: v })} options={productOptions} placeholder="Part select..." />
               <Input type="number" value={pick.qty} onChange={(e) => setPick({ ...pick, qty: e.target.value })} />
               <Button onClick={addLine}>Add</Button>
             </div>
@@ -98,10 +100,7 @@ export default function NewSalePage() {
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Paid amount</Label><Input type="number" value={paid} onChange={(e) => setPaid(e.target.value)} /></div>
               <div><Label>Account</Label>
-                <select className={inputCls} value={account_id} onChange={(e) => setAccountId(e.target.value)}>
-                  <option value="">Select...</option>
-                  {(accounts.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+                <AppSelect value={account_id} onChange={setAccountId} options={accountOptions} placeholder="Select account..." isClearable />
               </div>
             </div>
             <div className="text-sm">Due (Baki): <span className="font-medium tabular-nums">৳{due.toLocaleString()}</span></div>

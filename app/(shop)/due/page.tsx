@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AppSelect } from "@/components/ui/app-select";
 import { toast } from "sonner";
-
-const inputCls = "flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm";
 
 export default function DuePage() {
   const qc = useQueryClient();
@@ -17,6 +16,15 @@ export default function DuePage() {
   const customers = useQuery({ queryKey: ["customers-due"], queryFn: async () => fetch("/api/customers?with_due=1").then((r) => r.json()) });
   const accounts = useQuery({ queryKey: ["accounts"], queryFn: async () => fetch("/api/accounts").then((r) => r.json()) });
   const [form, setForm] = useState({ sale_id: "", amount: "", account_id: "" });
+
+  const saleOptions = (dues.data ?? []).map((s: { id: number; customer_name: string | null; due_amount: string }) => ({
+    value: String(s.id),
+    label: `#${s.id} ${s.customer_name ?? ""} — due ৳${Number(s.due_amount).toLocaleString()}`,
+  }));
+  const accountOptions = (accounts.data ?? []).map((a: { id: number; name: string }) => ({
+    value: String(a.id),
+    label: a.name,
+  }));
 
   const collect = useMutation({
     mutationFn: async () => {
@@ -42,20 +50,12 @@ export default function DuePage() {
           <CardHeader><CardTitle>Due Collect (Takaa Aday)</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div><Label>Baki sale</Label>
-              <select className={inputCls} value={form.sale_id} onChange={(e) => setForm({ ...form, sale_id: e.target.value })}>
-                <option value="">Select sale...</option>
-                {(dues.data ?? []).map((s: { id: number; customer_name: string | null; due_amount: string }) => (
-                  <option key={s.id} value={s.id}>#{s.id} {s.customer_name ?? ""} — due ৳{Number(s.due_amount).toLocaleString()}</option>
-                ))}
-              </select>
+              <AppSelect value={form.sale_id} onChange={(v) => setForm({ ...form, sale_id: v })} options={saleOptions} placeholder="Select sale..." isClearable />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Amount</Label><Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
               <div><Label>Account</Label>
-                <select className={inputCls} value={form.account_id} onChange={(e) => setForm({ ...form, account_id: e.target.value })}>
-                  <option value="">Select...</option>
-                  {(accounts.data ?? []).map((a: { id: number; name: string }) => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+                <AppSelect value={form.account_id} onChange={(v) => setForm({ ...form, account_id: v })} options={accountOptions} placeholder="Select..." isClearable />
               </div>
             </div>
             <Button onClick={() => collect.mutate()} disabled={collect.isPending}>Collect</Button>

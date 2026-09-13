@@ -8,23 +8,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppSelect } from "@/components/ui/app-select";
 import { toast } from "sonner";
-
-interface Product {
-  id: number; name: string; category: string; unit: string;
-  current_stock: number; buy_price: string; sell_price: string;
-}
-
-const inputCls = "flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm";
 
 export default function ProductsPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery<Product[]>({
+  const { data, isLoading } = useQuery<{ id: number; name: string; category: string; unit: string; current_stock: number; buy_price: string; sell_price: string }[]>({
     queryKey: ["products"],
     queryFn: async () => (await fetch("/api/products").then((r) => r.json())),
   });
   const [form, setForm] = useState({ name: "", category: "AC_PARTS", buy_price: "", sell_price: "", current_stock: "0" });
   const [stockIn, setStockIn] = useState({ product_id: "", qty: "", buy_price: "" });
+
+  const categoryOptions = [
+    { value: "AC_PARTS", label: "AC_PARTS" },
+    { value: "AC", label: "AC" },
+    { value: "TV", label: "TV" },
+    { value: "OTHER", label: "OTHER" },
+  ];
 
   const addProduct = useMutation({
     mutationFn: async () => {
@@ -61,9 +62,7 @@ export default function ProductsPage() {
             <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Compressor, Copper pipe..." /></div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Category</Label>
-                <select className={inputCls} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                  <option value="AC_PARTS">AC_PARTS</option><option value="AC">AC</option><option value="TV">TV</option><option value="OTHER">OTHER</option>
-                </select>
+                <AppSelect value={form.category} onChange={(v) => setForm({ ...form, category: v || "AC_PARTS" })} options={categoryOptions} isSearchable={false} placeholder="Category" />
               </div>
               <div><Label>Opening stock</Label><Input type="number" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: e.target.value })} /></div>
               <div><Label>Buy price</Label><Input type="number" value={form.buy_price} onChange={(e) => setForm({ ...form, buy_price: e.target.value })} /></div>
@@ -76,10 +75,13 @@ export default function ProductsPage() {
           <CardHeader><CardTitle>Stock In (Kena / Purchase)</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div><Label>Product</Label>
-              <select className={inputCls} value={stockIn.product_id} onChange={(e) => setStockIn({ ...stockIn, product_id: e.target.value })}>
-                <option value="">Select...</option>
-                {(data ?? []).map((p) => <option key={p.id} value={p.id}>{p.name} (stock {p.current_stock})</option>)}
-              </select>
+              <AppSelect
+                value={stockIn.product_id}
+                onChange={(v) => setStockIn({ ...stockIn, product_id: v })}
+                options={(data ?? []).map((p) => ({ value: String(p.id), label: `${p.name} (stock ${p.current_stock})` }))}
+                placeholder="Select product..."
+                isClearable
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Qty</Label><Input type="number" value={stockIn.qty} onChange={(e) => setStockIn({ ...stockIn, qty: e.target.value })} /></div>

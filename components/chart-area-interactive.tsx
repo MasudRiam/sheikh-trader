@@ -19,15 +19,9 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppSelect } from "@/components/ui/app-select";
 
 export const description = "Bikri overview - cash vs baki (live)";
 
@@ -107,33 +101,19 @@ export function ChartAreaInteractive() {
             <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
             <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
           </ToggleGroup>
-          <Select
-            value={timeRange}
-            onValueChange={(value) => {
-              if (value !== null) {
-                setTimeRange(value);
-              }
-            }}
-          >
-            <SelectTrigger
-              className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
-              size="sm"
-              aria-label="Select a value"
-            >
-              <SelectValue placeholder="Last 30 days" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
-              </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
-              </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-40 @[767px]/card:hidden">
+            <AppSelect
+              value={timeRange}
+              onChange={(v) => setTimeRange(v || "30d")}
+              options={[
+                { value: "90d", label: "Last 3 months" },
+                { value: "30d", label: "Last 30 days" },
+                { value: "7d", label: "Last 7 days" },
+              ]}
+              isSearchable={false}
+              placeholder="Last 30 days"
+            />
+          </div>
         </CardAction>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
