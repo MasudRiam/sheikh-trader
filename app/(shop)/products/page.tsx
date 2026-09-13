@@ -58,7 +58,7 @@ export default function ProductsPage() {
     <>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @5xl/main:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>New AC Part</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Add New Product</CardTitle></CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div><Label className="mb-[2px]">Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Compressor, Copper pipe..." /></div>
             <div className="grid grid-cols-2 gap-3">
