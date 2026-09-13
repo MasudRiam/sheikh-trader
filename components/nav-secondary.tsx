@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 export function NavSecondary({
@@ -23,6 +24,7 @@ export function NavSecondary({
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const pathname = usePathname()
+  const { setOpenMobile } = useSidebar()
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -31,6 +33,7 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 isActive={pathname === item.url}
+                onClick={() => setOpenMobile(false)}
                 render={<Link href={item.url} />}
               >
                 {item.icon}

@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { CirclePlusIcon } from "lucide-react"
 
@@ -21,6 +22,8 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
+  const { setOpenMobile } = useSidebar()
+  const closeMobile = () => setOpenMobile(false)
   const isNewBikri = pathname === "/sales/new"
 
   return (
@@ -31,6 +34,7 @@ export function NavMain({
             <SidebarMenuButton
               tooltip="New Bikri"
               isActive={isNewBikri}
+              onClick={closeMobile}
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
               render={<Link href="/sales/new" />}
             >
@@ -49,6 +53,7 @@ export function NavMain({
                 <SidebarMenuButton
                   tooltip={item.title}
                   isActive={active}
+                  onClick={closeMobile}
                   render={<Link href={item.url} />}
                 >
                   {item.icon}
