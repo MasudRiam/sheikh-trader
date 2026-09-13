@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ShopShell } from "@/components/shop-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
@@ -9,7 +8,7 @@ export default function AccountsPage() {
   const { data } = useQuery({ queryKey: ["accounts"], queryFn: async () => fetch("/api/accounts").then((r) => r.json()) });
   const total = (data ?? []).reduce((a: number, x: { balance: string | number }) => a + Number(x.balance), 0);
   return (
-    <ShopShell>
+    <>
       <div className="px-4 lg:px-6">
         <Card>
           <CardHeader><CardTitle>Accounts (Cash / DBBL / BRAC / Bkash)</CardTitle></CardHeader>
@@ -26,6 +25,6 @@ export default function AccountsPage() {
           </CardContent>
         </Card>
       </div>
-    </ShopShell>
+    </>
   );
 }

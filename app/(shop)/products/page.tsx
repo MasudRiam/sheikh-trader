@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ShopShell } from "@/components/shop-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 interface Product {
@@ -53,7 +53,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <ShopShell>
+    <>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @5xl/main:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>New AC Part</CardTitle></CardHeader>
@@ -93,7 +93,13 @@ export default function ProductsPage() {
         <Card>
           <CardHeader><CardTitle>Stock List</CardTitle></CardHeader>
           <CardContent>
-            {isLoading ? <p className="text-sm text-muted-foreground">Loading...</p> : (
+            {isLoading ? (
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : (
               <Table>
                 <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Cat</TableHead><TableHead className="text-right">Stock</TableHead><TableHead className="text-right">Buy</TableHead><TableHead className="text-right">Sell</TableHead></TableRow></TableHeader>
                 <TableBody>
@@ -111,6 +117,6 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       </div>
-    </ShopShell>
+    </>
   );
 }

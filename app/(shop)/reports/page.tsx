@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ShopShell } from "@/components/shop-shell";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const fmt = (n: number) => `৳${Number(n || 0).toLocaleString("en-IN")}`;
 const toISO = (d: Date) => d.toISOString().slice(0, 10);
@@ -63,7 +63,7 @@ export default function ReportsPage() {
   ];
 
   return (
-    <ShopShell>
+    <>
       <div className="flex flex-wrap gap-2 px-4 lg:px-6">
         {(["week", "month", "year", "custom"] as Mode[]).map((m) => (
           <Button key={m} variant={mode === m ? "default" : "outline"} size="sm" onClick={() => setMode(m)}>
@@ -85,7 +85,7 @@ export default function ReportsPage() {
         {cards.map((c) => (
           <Card key={c.label}>
             <CardHeader className="pb-1"><CardTitle className="text-sm font-normal text-muted-foreground">{c.label}</CardTitle></CardHeader>
-            <CardContent><div className="text-xl font-semibold tabular-nums">{loading ? "..." : fmt(c.value)}</div></CardContent>
+            <CardContent>{loading ? <Skeleton className="h-7 w-24" /> : <div className="text-xl font-semibold tabular-nums">{fmt(c.value)}</div>}</CardContent>
           </Card>
         ))}
       </div>
@@ -98,7 +98,13 @@ export default function ReportsPage() {
         <Card>
           <CardHeader><CardTitle>{isYear ? `Monthly breakdown — ${year}` : `Daily breakdown — ${rangeParams.from} to ${rangeParams.to}`}</CardTitle></CardHeader>
           <CardContent>
-            {loading ? <p className="text-sm text-muted-foreground">Loading...</p> : isYear ? (
+            {loading ? (
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : isYear ? (
               <Table>
                 <TableHeader><TableRow><TableHead>Month</TableHead><TableHead className="text-right">Mot</TableHead><TableHead className="text-right">Cash</TableHead><TableHead className="text-right">Baki</TableHead><TableHead className="text-right">Labh</TableHead><TableHead className="text-right">Khoroch</TableHead><TableHead className="text-right">Net</TableHead></TableRow></TableHeader>
                 <TableBody>
@@ -136,6 +142,6 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
-    </ShopShell>
+    </>
   );
 }

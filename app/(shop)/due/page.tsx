@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ShopShell } from "@/components/shop-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +36,7 @@ export default function DuePage() {
   });
 
   return (
-    <ShopShell>
+    <>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @5xl/main:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Due Collect (Takaa Aday)</CardTitle></CardHeader>
@@ -93,6 +92,6 @@ export default function DuePage() {
           </CardContent>
         </Card>
       </div>
-    </ShopShell>
+    </>
   );
 }

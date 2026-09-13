@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const description = "Bikri overview - cash vs baki (live)";
 
@@ -137,9 +138,7 @@ export function ChartAreaInteractive() {
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground px-4 pb-6">
-            Loading bikri chart...
-          </p>
+          <Skeleton className="h-[250px] w-full" />
         ) : chartData.length === 0 ? (
           <p className="text-sm text-muted-foreground px-4 pb-6">
             No bikri in this period yet. Add a sale from Bikri page.

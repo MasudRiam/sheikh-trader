@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ShopShell } from "@/components/shop-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,7 @@ export default function ExpensesPage() {
   });
 
   return (
-    <ShopShell>
+    <>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @5xl/main:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>New Khoroch</CardTitle></CardHeader>
@@ -72,6 +71,6 @@ export default function ExpensesPage() {
           </CardContent>
         </Card>
       </div>
-    </ShopShell>
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { SectionCards } from "@/components/section-cards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 const fmt = (n: number) => `৳${Number(n || 0).toLocaleString("en-IN")}`;
@@ -36,7 +37,11 @@ export function DashboardLive() {
           </CardHeader>
           <CardContent>
             {daily.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
             ) : (
               <Table>
                 <TableBody>

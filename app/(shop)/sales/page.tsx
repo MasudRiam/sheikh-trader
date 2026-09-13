@@ -2,10 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { ShopShell } from "@/components/shop-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SalesPage() {
   const { data, isLoading } = useQuery({
@@ -13,7 +13,7 @@ export default function SalesPage() {
     queryFn: async () => fetch("/api/sales").then((r) => r.json()),
   });
   return (
-    <ShopShell>
+    <>
       <div className="px-4 lg:px-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -21,7 +21,13 @@ export default function SalesPage() {
             <Link href="/sales/new"><Button>New Bikri</Button></Link>
           </CardHeader>
           <CardContent>
-            {isLoading ? <p className="text-sm text-muted-foreground">Loading...</p> : (
+            {isLoading ? (
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : (
               <Table>
                 <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Mot</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Due</TableHead><TableHead className="text-right">Profit</TableHead></TableRow></TableHeader>
                 <TableBody>
@@ -40,6 +46,6 @@ export default function SalesPage() {
           </CardContent>
         </Card>
       </div>
-    </ShopShell>
+    </>
   );
 }
