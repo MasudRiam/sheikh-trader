@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStockIns, createStockIn } from "@/app/lib/queries/stockIns";
+import { getCustomers, createCustomer, getCustomersWithDue } from "@/app/lib/queries/customers";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    return NextResponse.json(await getStockIns(50));
+    const { searchParams } = new URL(req.url);
+    if (searchParams.get("with_due") === "1") {
+      return NextResponse.json(await getCustomersWithDue());
+    }
+    return NextResponse.json(await getCustomers());
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
@@ -13,10 +17,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.product_id || !body.qty || body.buy_price == null) {
-      return NextResponse.json({ error: "product_id, qty, buy_price required" }, { status: 400 });
-    }
-    const row = await createStockIn(body);
+    const row = await createCustomer(body);
     return NextResponse.json(row, { status: 201 });
   } catch (e) {
     console.error(e);

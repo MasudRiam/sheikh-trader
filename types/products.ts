@@ -1,7 +1,7 @@
 export interface Product {
   id: number;
   name: string;
-  category: "AC" | "TV";
+  category: "AC" | "AC_PARTS" | "TV" | "OTHER";
   unit: string;
   current_stock: number;
   buy_price: number;
@@ -12,7 +12,7 @@ export interface Product {
 
 export interface CreateProductInput {
   name: string;
-  category: "AC" | "TV";
+  category: "AC" | "AC_PARTS" | "TV" | "OTHER";
   unit?: string;
   current_stock?: number;
   buy_price: number;

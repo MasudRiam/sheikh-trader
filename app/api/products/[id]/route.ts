@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getProductById, updateProduct, deleteProduct } from '@/app/lib/queries/products';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const product = await getProductById(Number(params.id));
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const product = await getProductById(Number(id));
   if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json(product);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params;
     const body = await req.json();
-    const product = await updateProduct(Number(params.id), body);
+    const product = await updateProduct(Number(id), body);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(product);
   } catch (error) {
@@ -19,8 +27,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const success = await deleteProduct(Number(params.id));
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const success = await deleteProduct(Number(id));
   if (!success) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ success: true });
 }

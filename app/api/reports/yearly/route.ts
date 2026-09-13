@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMonthlySummary } from "@/app/lib/queries/reports";
+import { getYearlySummary } from "@/app/lib/queries/reports";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const now = new Date();
-    const year = Number(searchParams.get("year") ?? now.getFullYear());
-    const month = Number(searchParams.get("month") ?? now.getMonth() + 1);
-    return NextResponse.json(await getMonthlySummary(year, month));
+    const year = Number(searchParams.get("year") ?? new Date().getFullYear());
+    return NextResponse.json(await getYearlySummary(year));
   } catch (e) {
     console.error(e);
     return NextResponse.json(
