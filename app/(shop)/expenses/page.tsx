@@ -1,22 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AppSelect } from "@/components/ui/app-select";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
+type ExpenseRow = { id: number; expense_date: string; category: string; amount: string; note: string | null };
+type ExpensesResponse = { rows: ExpenseRow[]; total: number; page: number; perPage: number; totalPages: number };
+
+const PER_PAGE_OPTIONS = [
+  { value: "10", label: "10 / page" },
+  { value: "20", label: "20 / page" },
+  { value: "50", label: "50 / page" },
+];
+
 export default function ExpensesPage() {
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["expenses"], queryFn: async () => fetch("/api/expenses").then((r) => r.json()) });
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState("10");
+  const { data, isLoading } = useQuery<ExpensesResponse>({
+    queryKey: ["expenses-table", page, perPage],
+    queryFn: async () => fetch(`/api/expenses?page=${page}&perPage=${perPage}`).then((r) => r.json()),
+    placeholderData: keepPreviousData,
+  });
   const accounts = useQuery({ queryKey: ["accounts"], queryFn: async () => fetch("/api/accounts").then((r) => r.json()) });
-  const expenses: { id: number; expense_date: string; category: string; amount: string; note: string | null }[] = Array.isArray(data) ? data : [];
+  const expenses: ExpenseRow[] = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+  const from = total === 0 ? 0 : (page - 1) * Number(perPage) + 1;
+  const to = Math.min(page * Number(perPage), total);
   const accountList: { id: number; name: string }[] = Array.isArray(accounts.data) ? accounts.data : [];
   const [form, setForm] = useState({ category: "general", amount: "", account_id: "", note: "" });
 
@@ -39,7 +60,7 @@ export default function ExpensesPage() {
       if (!r.ok) throw new Error((await r.json()).error || "Failed");
       return r.json();
     },
-    onSuccess: () => { toast.success("Khoroch saved"); setForm({ category: "general", amount: "", account_id: "", note: "" }); qc.invalidateQueries({ queryKey: ["expenses"] }); qc.invalidateQueries({ queryKey: ["daily"] }); },
+    onSuccess: () => { toast.success("Khoroch saved"); setForm({ category: "general", amount: "", account_id: "", note: "" }); qc.invalidateQueries({ queryKey: ["expenses-table"] }); qc.invalidateQueries({ queryKey: ["daily"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -65,8 +86,18 @@ export default function ExpensesPage() {
         <Card>
           <CardHeader><CardTitle>Recent Khoroch</CardTitle></CardHeader>
           <CardContent>
-            <TooltipProvider>
-            <Table>
+            {isLoading ? (
+              <div className="flex flex-col gap-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : expenses.length === 0 ? (
+              <p className="text-muted-foreground py-6 text-center text-sm">No khoroch yet.</p>
+            ) : (
+              <>
+              <TooltipProvider>
+              <Table>
               <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Amount</TableHead><TableHead>Note</TableHead></TableRow></TableHeader>
               <TableBody>
                 {(expenses).map((e) => (
@@ -84,8 +115,32 @@ export default function ExpensesPage() {
                     </TableCell></TableRow>
                 ))}
               </TableBody>
-            </Table>
-            </TooltipProvider>
+              </Table>
+              </TooltipProvider>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <span className="text-muted-foreground text-sm tabular-nums">
+                  Showing {from}–{to} of {total}
+                </span>
+                <div className="ml-auto flex items-center gap-2">
+                  <div className="w-32">
+                    <AppSelect
+                      value={perPage}
+                      onChange={(v) => { setPerPage(v || "10"); setPage(1); }}
+                      options={PER_PAGE_OPTIONS}
+                      isSearchable={false}
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page <= 1}>
+                    <ChevronLeftIcon />Prev
+                  </Button>
+                  <span className="text-sm tabular-nums">Page {page} of {totalPages}</span>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(p + 1, totalPages))} disabled={page >= totalPages}>
+                    Next<ChevronRightIcon />
+                  </Button>
+                </div>
+              </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

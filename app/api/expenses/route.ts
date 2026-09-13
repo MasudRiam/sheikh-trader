@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getExpenses, createExpense } from "@/app/lib/queries/expenses";
+import { getExpenses, getExpensesPaginated, createExpense } from "@/app/lib/queries/expenses";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    // Paginated object when page/perPage given (Recent Khoroch table); full array otherwise
+    if (searchParams.has("page") || searchParams.has("perPage")) {
+      const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
+      const perPage = Math.min(Math.max(parseInt(searchParams.get("perPage") ?? "10", 10) || 10, 1), 100);
+      const { rows, total } = await getExpensesPaginated({ limit: perPage, offset: (page - 1) * perPage });
+      return NextResponse.json({ rows, total, page, perPage, totalPages: Math.max(Math.ceil(total / perPage), 1) });
+    }
     return NextResponse.json(await getExpenses(50));
   } catch (e) {
     console.error(e);

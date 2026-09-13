@@ -4,10 +4,25 @@ export async function getExpenses(limit = 50) {
   const result = await pool.query(
     `SELECT e.*, a.name AS account_name FROM expenses e
      LEFT JOIN accounts a ON a.id = e.account_id
-     ORDER BY e.expense_date DESC, e.created_at DESC LIMIT $1`,
+     ORDER BY e.expense_date DESC, e.created_at DESC, e.id DESC LIMIT $1`,
     [limit],
   );
   return result.rows;
+}
+
+export async function getExpensesPaginated({ limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}) {
+  const safeLimit = Math.min(Math.max(Math.floor(limit) || 10, 1), 100);
+  const safeOffset = Math.max(Math.floor(offset) || 0, 0);
+  const [rows, count] = await Promise.all([
+    pool.query(
+      `SELECT e.*, a.name AS account_name FROM expenses e
+       LEFT JOIN accounts a ON a.id = e.account_id
+       ORDER BY e.expense_date DESC, e.created_at DESC, e.id DESC LIMIT $1 OFFSET $2`,
+      [safeLimit, safeOffset],
+    ),
+    pool.query(`SELECT COUNT(*)::int AS total FROM expenses`),
+  ]);
+  return { rows: rows.rows, total: count.rows[0].total as number };
 }
 
 export async function createExpense(input: {

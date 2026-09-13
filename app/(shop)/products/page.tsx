@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,12 +13,36 @@ import { AppSelect } from "@/components/ui/app-select";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
+type Product = { id: number; name: string; category: string; unit: string; current_stock: number; buy_price: string; sell_price: string };
+type ProductsResponse = { rows: Product[]; total: number; page: number; perPage: number; totalPages: number };
+
+const PER_PAGE_OPTIONS = [
+  { value: "10", label: "10 / page" },
+  { value: "20", label: "20 / page" },
+  { value: "50", label: "50 / page" },
+];
+
 export default function ProductsPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery<{ id: number; name: string; category: string; unit: string; current_stock: number; buy_price: string; sell_price: string }[]>({
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState("10");
+  // Full list for the Stock-In dropdown (no pagination params)
+  const { data } = useQuery<Product[]>({
     queryKey: ["products"],
     queryFn: async () => (await fetch("/api/products").then((r) => r.json())),
   });
+  // Server-paginated stock table
+  const table = useQuery<ProductsResponse>({
+    queryKey: ["products-table", page, perPage],
+    queryFn: async () => (await fetch(`/api/products?page=${page}&perPage=${perPage}`).then((r) => r.json())),
+    placeholderData: keepPreviousData,
+  });
+  const isLoading = table.isLoading;
+  const stockRows = table.data?.rows ?? [];
+  const total = table.data?.total ?? 0;
+  const totalPages = table.data?.totalPages ?? 1;
+  const from = total === 0 ? 0 : (page - 1) * Number(perPage) + 1;
+  const to = Math.min(page * Number(perPage), total);
   const [form, setForm] = useState({ name: "", category: "AC_PARTS", buy_price: "", sell_price: "", current_stock: "0" });
   const [stockIn, setStockIn] = useState({ product_id: "", qty: "", buy_price: "" });
 
@@ -37,7 +62,7 @@ export default function ProductsPage() {
       if (!r.ok) throw new Error((await r.json()).error || "Failed");
       return r.json();
     },
-    onSuccess: () => { toast.success("Product added"); setForm({ name: "", category: "AC_PARTS", buy_price: "", sell_price: "", current_stock: "0" }); qc.invalidateQueries({ queryKey: ["products"] }); },
+    onSuccess: () => { toast.success("Product added"); setForm({ name: "", category: "AC_PARTS", buy_price: "", sell_price: "", current_stock: "0" }); qc.invalidateQueries({ queryKey: ["products"] }); qc.invalidateQueries({ queryKey: ["products-table"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -50,7 +75,7 @@ export default function ProductsPage() {
       if (!r.ok) throw new Error((await r.json()).error || "Failed");
       return r.json();
     },
-    onSuccess: () => { toast.success("Stock added"); setStockIn({ product_id: "", qty: "", buy_price: "" }); qc.invalidateQueries({ queryKey: ["products"] }); },
+    onSuccess: () => { toast.success("Stock added"); setStockIn({ product_id: "", qty: "", buy_price: "" }); qc.invalidateQueries({ queryKey: ["products"] }); qc.invalidateQueries({ queryKey: ["products-table"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -102,11 +127,14 @@ export default function ProductsPage() {
                   <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
+            ) : stockRows.length === 0 ? (
+              <p className="text-muted-foreground py-6 text-center text-sm">No products yet. Add one from New AC Part.</p>
             ) : (
+              <>
               <Table>
                 <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Cat</TableHead><TableHead className="text-right">Stock</TableHead><TableHead className="text-right">Buy</TableHead><TableHead className="text-right">Sell</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {(data ?? []).map((p) => (
+                  {stockRows.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>{p.name}</TableCell><TableCell>{p.category}</TableCell>
                       <TableCell className="text-right tabular-nums">{p.current_stock}</TableCell>
@@ -116,6 +144,29 @@ export default function ProductsPage() {
                   ))}
                 </TableBody>
               </Table>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <span className="text-muted-foreground text-sm tabular-nums">
+                  Showing {from}–{to} of {total}
+                </span>
+                <div className="ml-auto flex items-center gap-2">
+                  <div className="w-32">
+                    <AppSelect
+                      value={perPage}
+                      onChange={(v) => { setPerPage(v || "10"); setPage(1); }}
+                      options={PER_PAGE_OPTIONS}
+                      isSearchable={false}
+                    />
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(p - 1, 1))} disabled={page <= 1}>
+                    <ChevronLeftIcon />Prev
+                  </Button>
+                  <span className="text-sm tabular-nums">Page {page} of {totalPages}</span>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(p + 1, totalPages))} disabled={page >= totalPages}>
+                    Next<ChevronRightIcon />
+                  </Button>
+                </div>
+              </div>
+              </>
             )}
           </CardContent>
         </Card>

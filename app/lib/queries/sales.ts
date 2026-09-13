@@ -17,18 +17,25 @@ export interface CreateSaleInput {
   note?: string | null;
 }
 
-export async function getSales(limit = 50) {
-  const result = await pool.query(
-    `SELECT s.*, c.name AS customer_name, a.name AS account_name,
-       COALESCE(SUM(si.qty) OVER (PARTITION BY s.id), 0)::int AS total_qty
-     FROM sales s
-     LEFT JOIN customers c ON c.id = s.customer_id
-     LEFT JOIN accounts a ON a.id = s.account_id
-     LEFT JOIN sale_items si ON si.sale_id = s.id
-     ORDER BY s.created_at DESC LIMIT $1`,
-    [limit],
-  );
-  return result.rows;
+export async function getSales({ limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}) {
+  const safeLimit = Math.min(Math.max(Math.floor(limit) || 10, 1), 100);
+  const safeOffset = Math.max(Math.floor(offset) || 0, 0);
+  const [rows, count] = await Promise.all([
+    pool.query(
+      `SELECT s.*, c.name AS customer_name, a.name AS account_name,
+         COALESCE(si.total_qty, 0)::int AS total_qty
+       FROM sales s
+       LEFT JOIN customers c ON c.id = s.customer_id
+       LEFT JOIN accounts a ON a.id = s.account_id
+       LEFT JOIN LATERAL (
+         SELECT SUM(qty)::int AS total_qty FROM sale_items WHERE sale_id = s.id
+       ) si ON true
+       ORDER BY s.created_at DESC, s.id DESC LIMIT $1 OFFSET $2`,
+      [safeLimit, safeOffset],
+    ),
+    pool.query(`SELECT COUNT(*)::int AS total FROM sales`),
+  ]);
+  return { rows: rows.rows, total: count.rows[0].total as number };
 }
 
 export async function getDueSales() {
@@ -37,9 +44,26 @@ export async function getDueSales() {
      FROM sales s
      LEFT JOIN customers c ON c.id = s.customer_id
      WHERE s.due_amount > 0
-     ORDER BY s.created_at DESC LIMIT 100`,
+     ORDER BY s.created_at DESC, s.id DESC LIMIT 100`,
   );
   return result.rows;
+}
+
+export async function getDueSalesPaginated({ limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}) {
+  const safeLimit = Math.min(Math.max(Math.floor(limit) || 10, 1), 100);
+  const safeOffset = Math.max(Math.floor(offset) || 0, 0);
+  const [rows, count] = await Promise.all([
+    pool.query(
+      `SELECT s.*, c.name AS customer_name, c.phone AS customer_phone
+       FROM sales s
+       LEFT JOIN customers c ON c.id = s.customer_id
+       WHERE s.due_amount > 0
+       ORDER BY s.created_at DESC, s.id DESC LIMIT $1 OFFSET $2`,
+      [safeLimit, safeOffset],
+    ),
+    pool.query(`SELECT COUNT(*)::int AS total FROM sales WHERE due_amount > 0`),
+  ]);
+  return { rows: rows.rows, total: count.rows[0].total as number };
 }
 
 export async function createSale(input: CreateSaleInput) {

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSales, createSale } from "@/app/lib/queries/sales";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const sales = await getSales(50);
-    return NextResponse.json(sales);
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
+    const perPage = Math.min(Math.max(parseInt(searchParams.get("perPage") ?? "10", 10) || 10, 1), 100);
+    const { rows, total } = await getSales({ limit: perPage, offset: (page - 1) * perPage });
+    return NextResponse.json({ rows, total, page, perPage, totalPages: Math.max(Math.ceil(total / perPage), 1) });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed to fetch sales" }, { status: 500 });

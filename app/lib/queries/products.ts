@@ -3,9 +3,19 @@ import { Product, CreateProductInput } from "@/types/products";
 
 export async function getAllProducts(): Promise<Product[]> {
   const result = await pool.query(
-    "SELECT * FROM products ORDER BY created_at DESC",
+    "SELECT * FROM products ORDER BY created_at DESC, id DESC",
   );
   return result.rows;
+}
+
+export async function getProducts({ limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}) {
+  const safeLimit = Math.min(Math.max(Math.floor(limit) || 10, 1), 100);
+  const safeOffset = Math.max(Math.floor(offset) || 0, 0);
+  const [rows, count] = await Promise.all([
+    pool.query("SELECT * FROM products ORDER BY created_at DESC, id DESC LIMIT $1 OFFSET $2", [safeLimit, safeOffset]),
+    pool.query("SELECT COUNT(*)::int AS total FROM products"),
+  ]);
+  return { rows: rows.rows as Product[], total: count.rows[0].total as number };
 }
 
 export async function getProductById(id: number): Promise<Product | null> {
