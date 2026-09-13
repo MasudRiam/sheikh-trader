@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/app/lib/auth/session";
 import { getSales, createSale } from "@/app/lib/queries/sales";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
@@ -15,6 +18,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     const body = await req.json();
     if (!body.items || body.items.length === 0) {

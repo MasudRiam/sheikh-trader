@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/app/lib/auth/session";
 import { getRangeSummary } from "@/app/lib/queries/reports";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     const { searchParams } = new URL(req.url);
     const data = await getRangeSummary(

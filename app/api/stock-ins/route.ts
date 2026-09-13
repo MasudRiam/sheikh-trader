@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/app/lib/auth/session";
 import { getStockIns, createStockIn } from "@/app/lib/queries/stockIns";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     return NextResponse.json(await getStockIns(50));
   } catch (e) {
@@ -11,6 +14,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     const body = await req.json();
     if (!body.product_id || !body.qty || body.buy_price == null) {

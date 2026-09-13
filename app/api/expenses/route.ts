@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/app/lib/auth/session";
 import { getExpenses, getExpensesPaginated, createExpense } from "@/app/lib/queries/expenses";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     const { searchParams } = new URL(req.url);
     // Paginated object when page/perPage given (Recent Expenses table); full array otherwise
@@ -19,6 +22,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAuth(req);
+  if ("response" in auth) return auth.response;
   try {
     const body = await req.json();
     if (body.amount == null) {

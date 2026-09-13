@@ -1,3 +1,4 @@
+import { LogoutButton } from "@/components/logout-button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -11,6 +12,9 @@ export function SiteHeader() {
           className="mx-2 h-4 data-vertical:self-auto"
         />
         <h1 className="text-base font-medium">Sheikh Trader — Dokan Hisab</h1>
+        <div className="ml-auto">
+          <LogoutButton />
+        </div>
       </div>
     </header>
   )
