@@ -44,7 +44,7 @@ const data = {
     { title: "Reports", url: "/reports", icon: <ChartColumnIcon /> },
   ],
   navSecondary: [
-    { title: "Settings", url: "#", icon: <Settings2Icon /> },
+    { title: "Settings", url: "/settings", icon: <Settings2Icon /> },
   ],
 }
 

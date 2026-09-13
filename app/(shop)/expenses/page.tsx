@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AppSelect } from "@/components/ui/app-select";
+import { getDefaultPerPage } from "@/lib/settings";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,7 +29,7 @@ export default function ExpensesPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState("10");
+  const [perPage, setPerPage] = useState(getDefaultPerPage);
   const { data, isLoading } = useQuery<ExpensesResponse>({
     queryKey: ["expenses-table", page, perPage],
     queryFn: async () => fetch(`/api/expenses?page=${page}&perPage=${perPage}`).then((r) => r.json()),

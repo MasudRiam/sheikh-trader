@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSelect } from "@/components/ui/app-select";
+import { getDefaultPerPage } from "@/lib/settings";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +26,7 @@ const PER_PAGE_OPTIONS = [
 export default function ProductsPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState("10");
+  const [perPage, setPerPage] = useState(getDefaultPerPage);
   // Full list for the Stock-In dropdown (no pagination params)
   const { data } = useQuery<Product[]>({
     queryKey: ["products"],

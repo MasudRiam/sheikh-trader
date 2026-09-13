@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   Avatar,
   AvatarFallback,
@@ -31,7 +32,7 @@ export function NavUser({
     avatar: string
   }
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -77,7 +78,10 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                render={<Link href="/account" />}
+                onClick={() => setOpenMobile(false)}
+              >
                 <CircleUserRoundIcon
                 />
                 Account

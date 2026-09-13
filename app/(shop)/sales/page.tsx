@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSelect } from "@/components/ui/app-select";
+import { getDefaultPerPage } from "@/lib/settings";
 
 type SaleRow = {
   id: number;
@@ -37,7 +38,7 @@ const PER_PAGE_OPTIONS = [
 
 export default function SalesPage() {
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState("10");
+  const [perPage, setPerPage] = useState(getDefaultPerPage);
   const { data, isLoading } = useQuery<SalesResponse>({
     queryKey: ["sales", page, perPage],
     queryFn: async () => fetch(`/api/sales?page=${page}&perPage=${perPage}`).then((r) => r.json()),

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSelect } from "@/components/ui/app-select";
+import { getDefaultPerPage } from "@/lib/settings";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,7 +29,7 @@ export default function DuePage() {
   const dues = useQuery({ queryKey: ["dues"], queryFn: async () => fetch("/api/due").then((r) => r.json()) });
   // Server-paginated Baki Sales List
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState("10");
+  const [perPage, setPerPage] = useState(getDefaultPerPage);
   const duesTable = useQuery<DuesResponse>({
     queryKey: ["dues-table", page, perPage],
     queryFn: async () => fetch(`/api/due?page=${page}&perPage=${perPage}`).then((r) => r.json()),
