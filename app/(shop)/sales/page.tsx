@@ -29,11 +29,12 @@ export default function SalesPage() {
               </div>
             ) : (
               <Table>
-                <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Due</TableHead><TableHead className="text-right">Profit</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Date</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Qty</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Due</TableHead><TableHead className="text-right">Profit</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {(data ?? []).map((s: { id: number; sale_date: string; customer_name: string | null; total_amount: string; paid_amount: string; due_amount: string; profit: string }) => (
+                  {(data ?? []).map((s: { id: number; sale_date: string; customer_name: string | null; total_qty: number; total_amount: string; paid_amount: string; due_amount: string; profit: string }) => (
                     <TableRow key={s.id}>
                       <TableCell>#{s.id}</TableCell><TableCell>{s.sale_date?.slice(0, 10)}</TableCell><TableCell>{s.customer_name ?? "-"}</TableCell>
+                      <TableCell className="text-right tabular-nums">{s.total_qty}</TableCell>
                       <TableCell className="text-right tabular-nums">৳{Number(s.total_amount).toLocaleString()}</TableCell>
                       <TableCell className="text-right tabular-nums">৳{Number(s.paid_amount).toLocaleString()}</TableCell>
                       <TableCell className="text-right tabular-nums">৳{Number(s.due_amount).toLocaleString()}</TableCell>

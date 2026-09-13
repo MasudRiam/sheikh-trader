@@ -19,10 +19,12 @@ export interface CreateSaleInput {
 
 export async function getSales(limit = 50) {
   const result = await pool.query(
-    `SELECT s.*, c.name AS customer_name, a.name AS account_name
+    `SELECT s.*, c.name AS customer_name, a.name AS account_name,
+       COALESCE(SUM(si.qty) OVER (PARTITION BY s.id), 0)::int AS total_qty
      FROM sales s
      LEFT JOIN customers c ON c.id = s.customer_id
      LEFT JOIN accounts a ON a.id = s.account_id
+     LEFT JOIN sale_items si ON si.sale_id = s.id
      ORDER BY s.created_at DESC LIMIT $1`,
     [limit],
   );
