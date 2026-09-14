@@ -68,6 +68,9 @@ export function AppSelect({
   isSearchable = true,
   isDisabled = false,
   className,
+  instanceId: instanceIdProp,
+  id: idProp,
+  menuPortalTarget: menuPortalTargetProp,
   ...props
 }: {
   value: string;
@@ -84,6 +87,19 @@ export function AppSelect({
     [options, value],
   );
 
+  // Stable ID for SSR: react-select auto-increments a global counter
+  // (react-select-2 vs react-select-3) which always mismatches hydration.
+  const autoId = React.useId().replace(/:/g, "");
+  const instanceId = instanceIdProp ?? autoId;
+
+  // Don't portal during SSR/first render: document.body only exists on
+  // the client, so rendering it conditionally breaks hydration.
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
   return (
     <Select<AppSelectOption, false, GroupBase<AppSelectOption>>
       value={selected}
@@ -96,7 +112,9 @@ export function AppSelect({
       styles={styles}
       className={className}
       classNamePrefix="app-select"
-      menuPortalTarget={typeof document !== "undefined" ? document.body : undefined}
+      instanceId={instanceId}
+      id={idProp ?? String(instanceId)}
+      menuPortalTarget={menuPortalTargetProp ?? (mounted ? document.body : undefined)}
       menuPosition="fixed"
       {...props}
     />
