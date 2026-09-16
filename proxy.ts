@@ -34,7 +34,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Login page: already logged in → go to app.
-  if (pathname === "/login") {
+  if (pathname === "/login" || pathname === "/register" || pathname === "/verify") {
     if (session) {
       return securityHeaders(
         NextResponse.redirect(new URL("/dashboard", request.url)),

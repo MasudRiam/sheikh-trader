@@ -7,8 +7,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "node scripts/seed-products.mjs",
-    "user:create": "dotenv -e .env.local -- node scripts/create-user.mjs",
     "migrate:up": "dotenv -e .env.local -- npx node-pg-migrate up",
     "migrate:down": "dotenv -e .env.local -- npx node-pg-migrate down",
     "migrate:create": "npx node-pg-migrate create"

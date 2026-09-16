@@ -162,7 +162,7 @@ due_collections
 
 | Module            | Details                                                                                            |
 | ----------------- | -------------------------------------------------------------------------------------------------- |
-| **Authentication** | JWT-based login/logout, HTTP-only cookie sessions, password change, CLI user provisioning, token revocation via `token_version` |
+| **Authentication** | JWT-based login/logout, HTTP-only cookie sessions, password change, UI-based registration with OTP verification, token revocation via `token_version` |
 | **Dashboard**      | Live metric cards (today's sales, expenses, profit, dues), interactive area charts with daily/monthly/yearly views |
 | **Point of Sale**  | Multi-item invoice creation, automatic profit calculation, customer selection/creation, payment account selection |
 | **Products**       | Full CRUD with category filtering (AC, AC Parts, TV, Other), stock tracking, buy/sell price management |
@@ -240,13 +240,13 @@ This creates all required tables (`users`, `products`, `customers`, `accounts`, 
 
 ### 4. Create Your First User
 
-There is no public registration — users are provisioned via CLI:
+You can create an account using the web UI:
 
-```bash
-npm run user:create
-```
-
-Follow the interactive prompts to set a username and password.
+1. Start the dev server (see below).
+2. Go to **http://localhost:3000/register**.
+3. Fill out the registration form.
+4. Check the terminal/server logs or your database (`pending_registrations` table) for the 6-digit OTP code.
+5. Enter the code on the verification page to complete signup.
 
 ### 5. Start the Dev Server
 
@@ -373,8 +373,6 @@ sheikh-trader/
 │   ├── products.ts
 │   └── shop.ts
 ├── migrations/                  # node-pg-migrate SQL migrations
-├── scripts/
-│   └── create-user.mjs          # CLI user provisioning
 ├── proxy.ts                     # Next.js middleware (auth + headers)
 ├── .env.example                 # Environment template
 └── package.json
@@ -393,7 +391,6 @@ sheikh-trader/
 | `npm run migrate:up`   | Apply pending database migrations               |
 | `npm run migrate:down` | Roll back the last migration                    |
 | `npm run migrate:create` | Scaffold a new migration file                 |
-| `npm run user:create`  | Interactively create a new user via CLI         |
 
 ---
 

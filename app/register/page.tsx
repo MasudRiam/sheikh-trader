@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOffIcon, Loader2Icon, StoreIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-function safeNext(value: string | null): string {
-  if (value && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")) {
-    return value;
-  }
-  return "/dashboard";
-}
-
-function LoginForm() {
+function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = safeNext(searchParams.get("next"));
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -32,18 +25,23 @@ function LoginForm() {
     setError("");
     setPending(true);
     try {
-      const r = await fetch("/api/auth/login", {
+      const r = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim(), password }),
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim(),
+          username: username.trim(),
+          password,
+        }),
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setError(typeof data.error === "string" ? data.error : "Login failed");
+        setError(typeof data.error === "string" ? data.error : "Registration failed");
         return;
       }
-      router.replace(next);
-      router.refresh();
+      // Redirect to OTP verify page with email as query param
+      router.push(`/verify?email=${encodeURIComponent(email.trim())}`);
     } catch {
       setError("Network error. Try again.");
     } finally {
@@ -58,31 +56,53 @@ function LoginForm() {
           <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-button">
             <StoreIcon className="size-5" />
           </div>
-          <CardTitle className="text-xl">Sheikh Trader</CardTitle>
-          <CardDescription>Login to open dokan hisab</CardDescription>
+          <CardTitle className="text-xl">Create Account</CardTitle>
+          <CardDescription>Register for Sheikh Trader</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="flex flex-col gap-3">
             <div>
-              <Label className="mb-[2px]" htmlFor="login-username">Username</Label>
+              <Label className="mb-[2px]" htmlFor="reg-name">Name</Label>
               <Input
-                id="login-username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                id="reg-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
                 autoFocus
                 required
               />
             </div>
             <div>
-              <Label className="mb-[2px]" htmlFor="login-password">Password</Label>
+              <Label className="mb-[2px]" htmlFor="reg-email">Email</Label>
+              <Input
+                id="reg-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+              />
+            </div>
+            <div>
+              <Label className="mb-[2px]" htmlFor="reg-username">Username</Label>
+              <Input
+                id="reg-username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+              />
+            </div>
+            <div>
+              <Label className="mb-[2px]" htmlFor="reg-password">Password</Label>
               <div className="relative">
                 <Input
-                  id="login-password"
+                  id="reg-password"
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                  autoComplete="new-password"
+                  minLength={8}
                   required
                   className="pr-10"
                 />
@@ -101,13 +121,13 @@ function LoginForm() {
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={pending}>
               {pending && <Loader2Icon className="animate-spin" />}
-              Login
+              Register
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary underline underline-offset-4 hover:text-primary/80">
-              Register
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary underline underline-offset-4 hover:text-primary/80">
+              Login
             </Link>
           </p>
         </CardContent>
@@ -116,10 +136,10 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <Suspense>
-      <LoginForm />
+      <RegisterForm />
     </Suspense>
   );
 }
