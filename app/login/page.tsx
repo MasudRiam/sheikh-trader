@@ -85,16 +85,16 @@ function LoginForm() {
                   required
                   className="pr-10"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon-sm"
                   onClick={() => setShowPw((s) => !s)}
+                  onMouseDown={(e) => e.preventDefault()}
                   aria-label={showPw ? "Hide password" : "Show password"}
-                  className="absolute top-1/2 right-1 -translate-y-1/2"
+                  tabIndex={-1}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
                 >
-                  {showPw ? <EyeOffIcon /> : <EyeIcon />}
-                </Button>
+                  {showPw ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                </button>
               </div>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}

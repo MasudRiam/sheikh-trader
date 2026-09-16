@@ -129,4 +129,9 @@
   html {
     @apply font-sans;
   }
+  /* Hide native browser password reveal & clear buttons in Edge/Windows */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
 }
