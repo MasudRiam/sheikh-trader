@@ -17,7 +17,7 @@ export interface CreateSaleInput {
   note?: string | null;
 }
 
-export async function getSales({ limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}) {
+export async function getSales({ limit = 10, offset = 0, userId }: { limit?: number; offset?: number; userId: number }) {
   const safeLimit = Math.min(Math.max(Math.floor(limit) || 10, 1), 100);
   const safeOffset = Math.max(Math.floor(offset) || 0, 0);
   const [rows, count] = await Promise.all([
@@ -25,59 +25,70 @@ export async function getSales({ limit = 10, offset = 0 }: { limit?: number; off
       `SELECT s.*, c.name AS customer_name, a.name AS account_name,
          COALESCE(si.total_qty, 0)::int AS total_qty
        FROM sales s
-       LEFT JOIN customers c ON c.id = s.customer_id
-       LEFT JOIN accounts a ON a.id = s.account_id
+       LEFT JOIN customers c ON c.id = s.customer_id AND c.user_id = $3
+       LEFT JOIN accounts a ON a.id = s.account_id AND a.user_id = $3
        LEFT JOIN LATERAL (
          SELECT SUM(qty)::int AS total_qty FROM sale_items WHERE sale_id = s.id
        ) si ON true
+       WHERE s.user_id = $3
        ORDER BY s.created_at DESC, s.id DESC LIMIT $1 OFFSET $2`,
-      [safeLimit, safeOffset],
+      [safeLimit, safeOffset, userId],
     ),
-    pool.query(`SELECT COUNT(*)::int AS total FROM sales`),
+    pool.query(`SELECT COUNT(*)::int AS total FROM sales WHERE user_id = $1`, [userId]),
   ]);
   return { rows: rows.rows, total: count.rows[0].total as number };
 }
 
-export async function getDueSales() {
+export async function getDueSales(userId: number) {
   const result = await pool.query(
     `SELECT s.*, c.name AS customer_name, c.phone AS customer_phone
      FROM sales s
-     LEFT JOIN customers c ON c.id = s.customer_id
-     WHERE s.due_amount > 0
+     LEFT JOIN customers c ON c.id = s.customer_id AND c.user_id = $1
+     WHERE s.user_id = $1 AND s.due_amount > 0
      ORDER BY s.created_at DESC, s.id DESC LIMIT 100`,
+    [userId],
   );
   return result.rows;
 }
 
-export async function getDueSalesPaginated({ limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}) {
+export async function getDueSalesPaginated({ limit = 10, offset = 0, userId }: { limit?: number; offset?: number; userId: number }) {
   const safeLimit = Math.min(Math.max(Math.floor(limit) || 10, 1), 100);
   const safeOffset = Math.max(Math.floor(offset) || 0, 0);
   const [rows, count] = await Promise.all([
     pool.query(
       `SELECT s.*, c.name AS customer_name, c.phone AS customer_phone
        FROM sales s
-       LEFT JOIN customers c ON c.id = s.customer_id
-       WHERE s.due_amount > 0
+       LEFT JOIN customers c ON c.id = s.customer_id AND c.user_id = $3
+       WHERE s.user_id = $3 AND s.due_amount > 0
        ORDER BY s.created_at DESC, s.id DESC LIMIT $1 OFFSET $2`,
-      [safeLimit, safeOffset],
+      [safeLimit, safeOffset, userId],
     ),
-    pool.query(`SELECT COUNT(*)::int AS total FROM sales WHERE due_amount > 0`),
+    pool.query(`SELECT COUNT(*)::int AS total FROM sales WHERE user_id = $1 AND due_amount > 0`, [userId]),
   ]);
   return { rows: rows.rows, total: count.rows[0].total as number };
 }
 
-export async function createSale(input: CreateSaleInput) {
+export async function createSale(input: CreateSaleInput, userId: number) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const { items, paid_amount, account_id, note, sale_date } = input;
     if (!items || items.length === 0) throw new Error("No items");
 
+    if (account_id) {
+      const acc = await client.query(`SELECT id FROM accounts WHERE id = $1 AND user_id = $2`, [account_id, userId]);
+      if (acc.rowCount === 0) throw new Error("Account not found");
+    }
+
     let customerId = input.customer_id ?? null;
+    if (customerId) {
+      const c = await client.query(`SELECT id FROM customers WHERE id = $1 AND user_id = $2`, [customerId, userId]);
+      if (c.rowCount === 0) throw new Error("Customer not found");
+    }
     if (!customerId && input.customer_name) {
       const c = await client.query(
-        `INSERT INTO customers (name, phone) VALUES ($1, $2) RETURNING id`,
-        [input.customer_name, input.customer_phone ?? null],
+        `INSERT INTO customers (name, phone, user_id) VALUES ($1, $2, $3) RETURNING id`,
+        [input.customer_name, input.customer_phone ?? null, userId],
       );
       customerId = c.rows[0].id;
     }
@@ -87,8 +98,8 @@ export async function createSale(input: CreateSaleInput) {
     const lines: { product_id: number; qty: number; buy: number; sell: number }[] = [];
     for (const it of items) {
       const p = await client.query(
-        `SELECT buy_price, current_stock FROM products WHERE id = $1`,
-        [it.product_id],
+        `SELECT buy_price, current_stock FROM products WHERE id = $1 AND user_id = $2`,
+        [it.product_id, userId],
       );
       if (p.rowCount === 0) throw new Error(`Product ${it.product_id} not found`);
       const buy = Number(p.rows[0].buy_price);
@@ -104,9 +115,9 @@ export async function createSale(input: CreateSaleInput) {
     const due = total - paid;
 
     const s = await client.query(
-      `INSERT INTO sales (sale_date, customer_id, total_amount, paid_amount, due_amount, profit, account_id, note)
-       VALUES (COALESCE($1, CURRENT_DATE), $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [sale_date ?? null, customerId, total, paid, due, profit, account_id ?? null, note ?? null],
+      `INSERT INTO sales (sale_date, customer_id, total_amount, paid_amount, due_amount, profit, account_id, note, user_id)
+       VALUES (COALESCE($1, CURRENT_DATE), $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [sale_date ?? null, customerId, total, paid, due, profit, account_id ?? null, note ?? null, userId],
     );
     const sale = s.rows[0];
 
@@ -117,13 +128,13 @@ export async function createSale(input: CreateSaleInput) {
         [sale.id, l.product_id, l.qty, l.buy, l.sell],
       );
       await client.query(
-        `UPDATE products SET current_stock = current_stock - $1, updated_at = NOW() WHERE id = $2`,
-        [l.qty, l.product_id],
+        `UPDATE products SET current_stock = current_stock - $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`,
+        [l.qty, l.product_id, userId],
       );
     }
 
     if (account_id && paid > 0) {
-      await client.query(`UPDATE accounts SET balance = balance + $1 WHERE id = $2`, [paid, account_id]);
+      await client.query(`UPDATE accounts SET balance = balance + $1 WHERE id = $2 AND user_id = $3`, [paid, account_id, userId]);
     }
 
     await client.query("COMMIT");
@@ -141,32 +152,42 @@ export async function collectDue(input: {
   customer_id?: number | null;
   amount: number;
   account_id?: number | null;
-}) {
+}, userId: number) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const amount = Number(input.amount);
     if (!(amount > 0)) throw new Error("Amount must be > 0");
 
+    if (input.account_id) {
+      const acc = await client.query(`SELECT id FROM accounts WHERE id = $1 AND user_id = $2`, [input.account_id, userId]);
+      if (acc.rowCount === 0) throw new Error("Account not found");
+    }
+
     let saleId = input.sale_id ?? null;
     let customerId = input.customer_id ?? null;
 
+    if (customerId) {
+      const c = await client.query(`SELECT id FROM customers WHERE id = $1 AND user_id = $2`, [customerId, userId]);
+      if (c.rowCount === 0) throw new Error("Customer not found");
+    }
+
     if (saleId) {
-      const s = await client.query(`SELECT * FROM sales WHERE id = $1`, [saleId]);
+      const s = await client.query(`SELECT * FROM sales WHERE id = $1 AND user_id = $2`, [saleId, userId]);
       if (s.rowCount === 0) throw new Error("Sale not found");
       const row = s.rows[0];
       const due = Number(row.due_amount);
       if (amount > due) throw new Error("Amount exceeds due");
       customerId = customerId ?? row.customer_id;
       await client.query(
-        `UPDATE sales SET paid_amount = paid_amount + $1, due_amount = due_amount - $1 WHERE id = $2`,
-        [amount, saleId],
+        `UPDATE sales SET paid_amount = paid_amount + $1, due_amount = due_amount - $1 WHERE id = $2 AND user_id = $3`,
+        [amount, saleId, userId],
       );
     } else if (customerId) {
       // collect against oldest dues
       const dues = await client.query(
-        `SELECT id, due_amount FROM sales WHERE customer_id = $1 AND due_amount > 0 ORDER BY created_at ASC`,
-        [customerId],
+        `SELECT id, due_amount FROM sales WHERE customer_id = $1 AND user_id = $2 AND due_amount > 0 ORDER BY created_at ASC`,
+        [customerId, userId],
       );
       let remaining = amount;
       const totalDue = dues.rows.reduce((a: number, r: { due_amount: string }) => a + Number(r.due_amount), 0);
@@ -175,8 +196,8 @@ export async function collectDue(input: {
         if (remaining <= 0) break;
         const take = Math.min(remaining, Number(d.due_amount));
         await client.query(
-          `UPDATE sales SET paid_amount = paid_amount + $1, due_amount = due_amount - $1 WHERE id = $2`,
-          [take, d.id],
+          `UPDATE sales SET paid_amount = paid_amount + $1, due_amount = due_amount - $1 WHERE id = $2 AND user_id = $3`,
+          [take, d.id, userId],
         );
         remaining -= take;
       }
@@ -186,11 +207,11 @@ export async function collectDue(input: {
     }
 
     await client.query(
-      `INSERT INTO due_collections (customer_id, sale_id, amount, account_id) VALUES ($1,$2,$3,$4)`,
-      [customerId, saleId, amount, input.account_id ?? null],
+      `INSERT INTO due_collections (customer_id, sale_id, amount, account_id, user_id) VALUES ($1,$2,$3,$4,$5)`,
+      [customerId, saleId, amount, input.account_id ?? null, userId],
     );
     if (input.account_id) {
-      await client.query(`UPDATE accounts SET balance = balance + $1 WHERE id = $2`, [amount, input.account_id]);
+      await client.query(`UPDATE accounts SET balance = balance + $1 WHERE id = $2 AND user_id = $3`, [amount, input.account_id, userId]);
     }
     await client.query("COMMIT");
     return { ok: true };

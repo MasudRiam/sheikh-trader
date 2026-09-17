@@ -11,10 +11,10 @@ export async function GET(req: NextRequest) {
     if (searchParams.has("page") || searchParams.has("perPage")) {
       const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
       const perPage = Math.min(Math.max(parseInt(searchParams.get("perPage") ?? "10", 10) || 10, 1), 100);
-      const { rows, total } = await getProducts({ limit: perPage, offset: (page - 1) * perPage });
+      const { rows, total } = await getProducts({ limit: perPage, offset: (page - 1) * perPage, userId: auth.user.id });
       return NextResponse.json({ rows, total, page, perPage, totalPages: Math.max(Math.ceil(total / perPage), 1) });
     }
-    const products = await getAllProducts();
+    const products = await getAllProducts(auth.user.id);
     return NextResponse.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'name, category, buy_price, sell_price are required' }, { status: 400 });
     }
 
-    const product = await createProduct(body);
+    const product = await createProduct(body, auth.user.id);
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);

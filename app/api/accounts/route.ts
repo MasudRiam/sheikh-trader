@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
   if ("response" in auth) return auth.response;
   try {
-    return NextResponse.json(await getAccounts());
+    return NextResponse.json(await getAccounts(auth.user.id));
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
