@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
     const perPage = Math.min(Math.max(parseInt(searchParams.get("perPage") ?? "10", 10) || 10, 1), 100);
-    const { rows, total } = await getSales({ limit: perPage, offset: (page - 1) * perPage });
+    const { rows, total } = await getSales({ limit: perPage, offset: (page - 1) * perPage, userId: auth.user.id });
     return NextResponse.json({ rows, total, page, perPage, totalPages: Math.max(Math.ceil(total / perPage), 1) });
   } catch (e) {
     console.error(e);
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (body.paid_amount == null) {
       return NextResponse.json({ error: "paid_amount required" }, { status: 400 });
     }
-    const sale = await createSale(body);
+    const sale = await createSale(body, auth.user.id);
     return NextResponse.json(sale, { status: 201 });
   } catch (e) {
     console.error(e);

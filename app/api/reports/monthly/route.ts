@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const year = Number(searchParams.get("year") ?? now.getFullYear());
     const month = Number(searchParams.get("month") ?? now.getMonth() + 1);
-    return NextResponse.json(await getMonthlySummary(year, month));
+    return NextResponse.json(await getMonthlySummary(year, month, auth.user.id));
   } catch (e) {
     console.error(e);
     return NextResponse.json(

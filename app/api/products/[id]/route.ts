@@ -9,7 +9,7 @@ export async function GET(
   const auth = await requireAuth(req);
   if ("response" in auth) return auth.response;
   const { id } = await params;
-  const product = await getProductById(Number(id));
+  const product = await getProductById(Number(id), auth.user.id);
   if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json(product);
 }
@@ -23,7 +23,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
-    const product = await updateProduct(Number(id), body);
+    const product = await updateProduct(Number(id), body, auth.user.id);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(product);
   } catch (error) {
@@ -39,7 +39,7 @@ export async function DELETE(
   const auth = await requireAuth(req);
   if ("response" in auth) return auth.response;
   const { id } = await params;
-  const success = await deleteProduct(Number(id));
+  const success = await deleteProduct(Number(id), auth.user.id);
   if (!success) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ success: true });
 }

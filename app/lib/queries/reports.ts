@@ -1,18 +1,19 @@
 import pool from "@/app/lib/dbConnection";
 
-export async function getDailySummary(date?: string) {
+export async function getDailySummary(date?: string, userId?: number) {
+  if (!userId) throw new Error("userId required");
   const d = date ?? new Date().toISOString().slice(0, 10);
   const sales = await pool.query(
     `SELECT COALESCE(SUM(total_amount),0) AS total,
             COALESCE(SUM(paid_amount),0) AS cash,
             COALESCE(SUM(due_amount),0) AS due,
             COALESCE(SUM(profit),0) AS profit
-     FROM sales WHERE sale_date = $1`,
-    [d],
+     FROM sales WHERE sale_date = $1 AND user_id = $2`,
+    [d, userId],
   );
   const exp = await pool.query(
-    `SELECT COALESCE(SUM(amount),0) AS khoroch FROM expenses WHERE expense_date = $1`,
-    [d],
+    `SELECT COALESCE(SUM(amount),0) AS khoroch FROM expenses WHERE expense_date = $1 AND user_id = $2`,
+    [d, userId],
   );
   const s = sales.rows[0];
   return {
@@ -39,7 +40,8 @@ function toISODate(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-export async function getRangeSummary(from?: string, to?: string) {
+export async function getRangeSummary(from?: string, to?: string, userId?: number) {
+  if (!userId) throw new Error("userId required");
   const end = to ?? toISODate(new Date());
   const startDate = new Date(from ?? new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10));
   const endDate = new Date(end);
@@ -58,11 +60,11 @@ export async function getRangeSummary(from?: string, to?: string) {
      s AS (
        SELECT sale_date AS d, SUM(total_amount) AS total, SUM(paid_amount) AS cash,
               SUM(due_amount) AS due, SUM(profit) AS profit
-       FROM sales WHERE sale_date BETWEEN $1 AND $2 GROUP BY sale_date
+       FROM sales WHERE sale_date BETWEEN $1 AND $2 AND user_id = $3 GROUP BY sale_date
      ),
      e AS (
        SELECT expense_date AS d, SUM(amount) AS khoroch
-       FROM expenses WHERE expense_date BETWEEN $1 AND $2 GROUP BY expense_date
+       FROM expenses WHERE expense_date BETWEEN $1 AND $2 AND user_id = $3 GROUP BY expense_date
      )
      SELECT days.d AS date,
             COALESCE(s.total,0) AS total, COALESCE(s.cash,0) AS cash,
@@ -70,7 +72,7 @@ export async function getRangeSummary(from?: string, to?: string) {
             COALESCE(e.khoroch,0) AS khoroch
      FROM days LEFT JOIN s ON s.d = days.d LEFT JOIN e ON e.d = days.d
      ORDER BY days.d ASC`,
-    [fromISO, toISO],
+    [fromISO, toISO, userId],
   );
 
   const rows: RangeRow[] = result.rows.map((r: { date: Date | string; total: string; cash: string; due: string; profit: string; khoroch: string }) => {
@@ -102,15 +104,15 @@ export async function getRangeSummary(from?: string, to?: string) {
   return { from: fromISO, to: toISO, totals, rows };
 }
 
-export async function getMonthlySummary(year: number, month: number) {
+export async function getMonthlySummary(year: number, month: number, userId: number) {
   if (!(month >= 1 && month <= 12)) throw new Error("month 1-12");
   const from = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();
   const to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-  return getRangeSummary(from, to);
+  return getRangeSummary(from, to, userId);
 }
 
-export async function getYearlySummary(year: number) {
+export async function getYearlySummary(year: number, userId: number) {
   if (!(year >= 2000 && year <= 2100)) throw new Error("Invalid year");
   const result = await pool.query(
     `WITH months AS (
@@ -120,18 +122,18 @@ export async function getYearlySummary(year: number) {
        SELECT EXTRACT(MONTH FROM sale_date)::int AS m,
               SUM(total_amount) AS total, SUM(paid_amount) AS cash,
               SUM(due_amount) AS due, SUM(profit) AS profit
-       FROM sales WHERE EXTRACT(YEAR FROM sale_date)::int = $1 GROUP BY 1
+       FROM sales WHERE EXTRACT(YEAR FROM sale_date)::int = $1 AND user_id = $2 GROUP BY 1
      ),
      e AS (
        SELECT EXTRACT(MONTH FROM expense_date)::int AS m, SUM(amount) AS khoroch
-       FROM expenses WHERE EXTRACT(YEAR FROM expense_date)::int = $1 GROUP BY 1
+       FROM expenses WHERE EXTRACT(YEAR FROM expense_date)::int = $1 AND user_id = $2 GROUP BY 1
      )
      SELECT months.m AS month, COALESCE(s.total,0) AS total,
             COALESCE(s.cash,0) AS cash, COALESCE(s.due,0) AS due,
             COALESCE(s.profit,0) AS profit, COALESCE(e.khoroch,0) AS khoroch
      FROM months LEFT JOIN s ON s.m = months.m LEFT JOIN e ON e.m = months.m
      ORDER BY months.m ASC`,
-    [year],
+    [year, userId],
   );
   const rows = result.rows.map((r: { month: number; total: string; cash: string; due: string; profit: string; khoroch: string }) => {
     const total = Number(r.total);
