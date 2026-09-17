@@ -8,9 +8,9 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     if (searchParams.get("with_due") === "1") {
-      return NextResponse.json(await getCustomersWithDue());
+      return NextResponse.json(await getCustomersWithDue(auth.user.id));
     }
-    return NextResponse.json(await getCustomers());
+    return NextResponse.json(await getCustomers(auth.user.id));
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   if ("response" in auth) return auth.response;
   try {
     const body = await req.json();
-    const row = await createCustomer(body);
+    const row = await createCustomer(body, auth.user.id);
     return NextResponse.json(row, { status: 201 });
   } catch (e) {
     console.error(e);

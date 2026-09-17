@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
   if ("response" in auth) return auth.response;
   try {
-    return NextResponse.json(await getStockIns(50));
+    return NextResponse.json(await getStockIns(50, auth.user.id));
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     if (!body.product_id || !body.qty || body.buy_price == null) {
       return NextResponse.json({ error: "product_id, qty, buy_price required" }, { status: 400 });
     }
-    const row = await createStockIn(body);
+    const row = await createStockIn(body, auth.user.id);
     return NextResponse.json(row, { status: 201 });
   } catch (e) {
     console.error(e);

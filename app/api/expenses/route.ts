@@ -11,10 +11,10 @@ export async function GET(req: NextRequest) {
     if (searchParams.has("page") || searchParams.has("perPage")) {
       const page = Math.max(parseInt(searchParams.get("page") ?? "1", 10) || 1, 1);
       const perPage = Math.min(Math.max(parseInt(searchParams.get("perPage") ?? "10", 10) || 10, 1), 100);
-      const { rows, total } = await getExpensesPaginated({ limit: perPage, offset: (page - 1) * perPage });
+      const { rows, total } = await getExpensesPaginated({ limit: perPage, offset: (page - 1) * perPage, userId: auth.user.id });
       return NextResponse.json({ rows, total, page, perPage, totalPages: Math.max(Math.ceil(total / perPage), 1) });
     }
-    return NextResponse.json(await getExpenses(50));
+    return NextResponse.json(await getExpenses(50, auth.user.id));
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (body.amount == null) {
       return NextResponse.json({ error: "amount required" }, { status: 400 });
     }
-    const row = await createExpense(body);
+    const row = await createExpense(body, auth.user.id);
     return NextResponse.json(row, { status: 201 });
   } catch (e) {
     console.error(e);

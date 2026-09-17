@@ -67,6 +67,14 @@ export async function POST(req: NextRequest) {
     );
     const user = inserted.rows[0];
 
+    // Each login = separate shop: seed default accounts for the new user
+    await client.query(
+      `INSERT INTO accounts (name, type, user_id)
+       VALUES ('Cash','cash',$1), ('DBBL','bank',$1), ('BRAC','bank',$1), ('Bkash','mobile',$1)
+       ON CONFLICT DO NOTHING`,
+      [user.id],
+    );
+
     // Clean up all pending registrations for this email
     await client.query(`DELETE FROM pending_registrations WHERE email = $1`, [email]);
 
