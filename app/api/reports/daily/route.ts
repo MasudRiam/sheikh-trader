@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date") ?? undefined;
-    return NextResponse.json(await getDailySummary(date));
+    return NextResponse.json(await getDailySummary(date, auth.user.id));
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed" }, { status: 500 });

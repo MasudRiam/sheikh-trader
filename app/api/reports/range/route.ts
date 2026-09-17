@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     const data = await getRangeSummary(
       searchParams.get("from") ?? undefined,
       searchParams.get("to") ?? undefined,
+      auth.user.id,
     );
     return NextResponse.json(data);
   } catch (e) {
